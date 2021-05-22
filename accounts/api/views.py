@@ -18,7 +18,7 @@ from accounts.api.serializers import SignupSerializer, LoginSerializer
 from django.contrib.auth.models import User
 from rest_framework import serializers, exceptions
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
@@ -48,7 +48,7 @@ class AccountViewSet(viewsets.ViewSet):
         serializer = SignupSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({
-                'success': False
+                'success': False,
                 'message': "Please check input",
                 'error': serializer.errors,
 
@@ -79,3 +79,14 @@ class AccountViewSet(viewsets.ViewSet):
             "success": True,
             "user": UserSerializer(instance=user).data,
         })
+
+    @action(methods=['GET'], detail=False)
+    def login_status(self, request):
+        """
+        查看用户当前的登录状态和具体信息
+        """
+
+        data = {'has_logged_in': request.user.is_authenticated}
+        if request.user.is_authenticated:
+            data['user'] = UserSerializer(request.user).data
+        return Response(data)
