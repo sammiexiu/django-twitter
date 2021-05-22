@@ -18,6 +18,7 @@ from accounts.api.serializers import SignupSerializer, LoginSerializer
 from django.contrib.auth.models import User
 from rest_framework import serializers, exceptions
 
+
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
@@ -26,11 +27,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
+
 class AccountViewSet(viewsets.ViewSet):
     permissions_classes = (AllowAny,)
     serializers_class = SignupSerializer
 
-    @action(methods=['POST'], detail = False)
+    @action(methods=['POST'], detail=False)
     def signup(self, request):
         """
         使用 username, email, password 进行注册
@@ -53,6 +55,12 @@ class AccountViewSet(viewsets.ViewSet):
                 'error': serializer.errors,
 
             }, status=400)
+        user = serializer.save()
+        django_login(request, user)
+        return Response({
+            'success': True,
+            'user': UserSerializer(user).data,
+        })
 
     @action(methods=['POST'], detail=False)
     def login(self, request):
